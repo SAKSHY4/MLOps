@@ -11,10 +11,17 @@ with open('model.pkl', 'rb') as f:
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    data = request.json
-    features = np.array(data['features']).reshape(1, -1)
-    prediction = model.predict(features)[0]
-    return jsonify({'prediction': prediction})
+    try:
+        data = request.json
+        if not data or 'features' not in data:
+            return jsonify({"error": "Missing features parameter"}), 400
+            
+        features = np.array(data['features']).reshape(1, -1)
+        prediction = model.predict(features)[0]
+        return jsonify({'prediction': float(prediction)})
+    except Exception as e:
+        app.logger.error(f"Prediction error: {str(e)}")
+        return jsonify({"error": "Internal server error", "message": str(e)}), 500
 
 @app.route('/health', methods=['GET'])
 def health():
@@ -25,4 +32,4 @@ def home():
     return "MLOps Flask API running. Use /predict for predictions or /health for status."
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
