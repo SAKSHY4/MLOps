@@ -1,13 +1,27 @@
 pipeline {
     agent any
     
+    stages {
+        stage('Build') {
+            agent {
+                docker {
+                    image 'python:3.9-slim-bullseye'
+                }
+            }
+            steps {
+                sh 'python --version'
+                sh 'pip install -r requirements.txt'
+                sh 'pip install pytest'
+            }
+        }
+    
     environment {
         DOCKER_HUB_CREDS = credentials('docker-hub-credentials')
         APP_NAME = 'mlops-demo'
         IMAGE_NAME = "boooooon/${APP_NAME}"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
-    
+
     stages {
         stage('Checkout') {
             steps {
