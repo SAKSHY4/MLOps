@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_HUB_CREDS = credentials('docker-hub-credentials')
         APP_NAME = 'mlops-demo'
-        IMAGE_NAME = "yourdockerhub/${APP_NAME}"
+        IMAGE_NAME = "boooooon/${APP_NAME}"
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
     
