@@ -17,6 +17,7 @@ pipeline {
         
         stage('Build') {
             steps {
+                sh '/usr/local/bin/pip install pytest'
                 sh 'pip install -r requirements.txt'
                 sh 'pip install pytest'
             }
