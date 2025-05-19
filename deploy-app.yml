@@ -1,12 +1,16 @@
 ---
-- name: Configure infrastructure and deploy MLOps app
+- name: Configure infrastructure
   hosts: all
   roles:
-    - common
-    - docker
+    - { role: common, tags: [ common ] }
+    - { role: docker, tags: [ docker ] }
 
-- name: Bootstrap Kubernetes cluster and deploy app
+- name: Bootstrap Kubernetes cluster
   hosts: masters
   roles:
-    - k8s_setup
-    - mlops_app
+    - { role: k8s_setup, tags: [ k8s_setup ] }
+
+- name: Deploy MLOps app
+  hosts: masters
+  roles:
+    - { role: mlops_app, tags: [ mlops_app ] }
