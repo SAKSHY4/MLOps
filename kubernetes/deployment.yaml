@@ -7,6 +7,11 @@ spec:
   selector:
     matchLabels:
       app: mlops-demo
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -14,6 +19,13 @@ spec:
     spec:
       containers:
         - name: mlops-demo
-          image: youruser/mlops-demo:${IMAGE_TAG}
+          image: yourdockerhub/mlops-demo:latest   # will be replaced by sed in Jenkins
           ports:
             - containerPort: 5000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
