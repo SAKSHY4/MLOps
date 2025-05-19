@@ -1,14 +1,12 @@
 ---
 - name: Configure infrastructure and deploy MLOps app
   hosts: all
-  become: true
   roles:
     - common
     - docker
 
 - name: Bootstrap Kubernetes cluster and deploy app
   hosts: masters
-  become: true
   roles:
     - k8s_setup
     - mlops_app

@@ -10,7 +10,6 @@
   ansible.builtin.apt:
     name: python3-pip
     state: present
-  become: true
 
 - name: Install Kubernetes Python client libraries
   ansible.builtin.pip:
@@ -18,22 +17,18 @@
       - kubernetes
       - openshift
     state: present
-  become: true
 
 - name: Deploy Deployment manifest
   kubernetes.core.k8s:
     state: present
     src: "{{ playbook_dir }}/kubernetes/deployment.yaml"
-  become: true
 
 - name: Deploy Service manifest
   kubernetes.core.k8s:
     state: present
     src: "{{ playbook_dir }}/kubernetes/service.yaml"
-  become: true
 
 - name: Deploy HPA manifest
   kubernetes.core.k8s:
     state: present
     src: "{{ playbook_dir }}/kubernetes/hpa.yaml"
-  become: true

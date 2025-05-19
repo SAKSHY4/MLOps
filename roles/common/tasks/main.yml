@@ -19,7 +19,6 @@
 
 - name: Disable swap for kubeadm
   ansible.builtin.command: swapoff -a
-  become: true
   when: ansible_swaptotal_mb|int > 0
   ignore_errors: true
 
@@ -28,7 +27,6 @@
     path: /etc/fstab
     regexp: '(^.*\s+swap\s+.*$)'
     replace: '# \1'
-  become: true
 
 - name: Create application directories
   ansible.builtin.file:
@@ -40,4 +38,3 @@
     - /opt/mlops/app
     - /opt/mlops/logs
     - /opt/mlops/wheels
-  become: true

@@ -4,14 +4,12 @@
   ansible.builtin.apt_key:
     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
     state: present
-  become: true
 
 - name: Download Kubernetes public signing key
   ansible.builtin.apt_key:
     url: https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key
     state: present
     keyring: /etc/apt/keyrings/kubernetes-archive-keyring.gpg
-  become: true
 
 - name: Add Kubernetes community-owned apt repo
   ansible.builtin.apt_repository:
@@ -19,12 +17,10 @@
     repo: >
       deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg]
       https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /
-  become: true
 
 - name: Update apt cache
   ansible.builtin.apt:
     update_cache: true
-  become: true
 
 - name: Install Kubernetes components
   ansible.builtin.apt:
@@ -34,11 +30,9 @@
       - kubectl
     state: present
     update_cache: false
-  become: true
 
 - name: Reset any existing Kubernetes cluster
   ansible.builtin.command: kubeadm reset -f
-  become: true
   ignore_errors: true
 
 - name: Remove stale manifests directory
@@ -46,19 +40,16 @@
     cmd: rm -rf /etc/kubernetes/manifests
   args:
     removes: /etc/kubernetes/manifests
-  become: true
 
 - name: Remove leftover etcd data
   ansible.builtin.file:
     path: /var/lib/etcd
     state: absent
-  become: true
 
 - name: Remove old CNI configs
   ansible.builtin.file:
     path: /etc/cni/net.d
     state: absent
-  become: true
 
 - name: Initialize Kubernetes control-plane
   command: kubeadm init --pod-network-cidr=10.244.0.0/16
@@ -69,7 +60,6 @@
     path: /root/.kube
     state: directory
     mode: '0700'
-  become: true
 
 - name: Copy kubeconfig for root
   copy:
