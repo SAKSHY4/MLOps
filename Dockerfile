@@ -9,13 +9,12 @@ WORKDIR /app
 
 # Install build tools for any packages that need compilation
 RUN apt-get update \
- && apt-get install -y --no-install-recommends build-essential \
+ && apt-get install -y --no-install-recommends --fix-missing build-essential \
  && rm -rf /var/lib/apt/lists/*
 
 # Copy only requirements and build wheels into a cache directory
 COPY app/requirements.txt .
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip wheel --no-cache-dir --wheel-dir=/wheels -r requirements.txt
+RUN pip wheel --no-cache-dir --wheel-dir=/wheels -r requirements.txt
 
 ########################################################
 # Stage 2: Final image with just runtime dependencies
