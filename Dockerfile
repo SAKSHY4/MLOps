@@ -28,6 +28,7 @@ WORKDIR /app
 COPY --from=builder /wheels /wheels
 COPY app/requirements.txt .
 RUN pip install --no-index --find-links=/wheels -r requirements.txt
+RUN pip install pytest
 
 # Copy your application code and model
 COPY model.pkl .
