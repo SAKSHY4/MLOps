@@ -10,6 +10,7 @@ COPY app/requirements.txt .
 
 RUN pip install --no-index --find-links=/wheels -r requirements.txt
 RUN pip install pytest
+RUN pip install --no-cache-dir ansible
 
 # Copy your application code and model
 COPY model.pkl .

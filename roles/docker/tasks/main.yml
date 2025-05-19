@@ -1,0 +1,12 @@
+---
+# tasks file for roles/docker
+- name: Install Docker CE
+  apt:
+    name: docker.io
+    state: present
+
+- name: Ensure docker service is running
+  service:
+    name: docker
+    state: started
+    enabled: yes

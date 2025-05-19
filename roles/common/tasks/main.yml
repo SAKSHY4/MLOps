@@ -1,0 +1,43 @@
+---
+# tasks file for roles/common
+- name: Ensure kernel modules for Kubernetes are loaded
+  ansible.builtin.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - br_netfilter
+    - overlay
+
+- name: Apply required sysctl settings for Kubernetes networking
+  ansible.builtin.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    reload: yes
+  loop:
+    - { name: net.bridge.bridge-nf-call-iptables, value: 1 }
+    - { name: net.ipv4.ip_forward,            value: 1 }
+
+- name: Disable swap for kubeadm
+  ansible.builtin.command: swapoff -a
+  become: true
+  when: ansible_swaptotal_mb|int > 0
+  ignore_errors: true
+
+- name: Comment out any swap entry in /etc/fstab
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '(^.*\s+swap\s+.*$)'
+    replace: '# \1'
+  become: true
+
+- name: Create application directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /opt/mlops
+    - /opt/mlops/app
+    - /opt/mlops/logs
+    - /opt/mlops/wheels
+  become: true
