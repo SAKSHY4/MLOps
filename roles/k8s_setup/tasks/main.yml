@@ -1,8 +1,16 @@
 ---
 # tasks file for roles/k8s_setup
-- name: Relax permissions on admin.conf
+- name: Ensure /etc/kubernetes directory is world-traversable
+  ansible.builtin.file:
+    path: /etc/kubernetes
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Ensure admin.conf is world-readable
   ansible.builtin.file:
     path: /etc/kubernetes/admin.conf
+    state: file
     mode: '0644'
   become: true
 
@@ -10,21 +18,6 @@
   ansible.builtin.apt_key:
     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
     state: present
-  become: true
-
-- name: Ensure .kube directory exists for Ansible user
-  ansible.builtin.file:
-    path: "{{ lookup('env','HOME') }}/.kube"
-    state: directory
-    mode: '0755'
-  become: true
-  
-- name: Copy Kubernetes admin.conf into home kubeconfig
-  ansible.builtin.copy:
-    src: /etc/kubernetes/admin.conf
-    dest: "{{ lookup('env','HOME') }}/.kube/config"
-    remote_src: yes
-    mode: '0644'
   become: true
 
 - name: Download Kubernetes public signing key
