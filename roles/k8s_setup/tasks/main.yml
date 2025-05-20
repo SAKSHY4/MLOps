@@ -6,6 +6,21 @@
     state: present
   become: true
 
+  - name: Ensure .kube directory exists for Ansible user
+  ansible.builtin.file:
+    path: "{{ lookup('env','HOME') }}/.kube"
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Copy Kubernetes admin.conf into home kubeconfig
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "{{ lookup('env','HOME') }}/.kube/config"
+    remote_src: yes
+    mode: '0644'
+  become: true
+
 - name: Download Kubernetes public signing key
   ansible.builtin.apt_key:
     url: https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key
