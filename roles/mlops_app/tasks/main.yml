@@ -22,13 +22,19 @@
   kubernetes.core.k8s:
     state: present
     src: "{{ playbook_dir }}/kubernetes/deployment.yaml"
+    kubeconfig: /etc/kubernetes/admin.conf
+    validate_certs: false
 
 - name: Deploy Service manifest
   kubernetes.core.k8s:
     state: present
     src: "{{ playbook_dir }}/kubernetes/service.yaml"
+    kubeconfig: /etc/kubernetes/admin.conf
+    validate_certs: false
 
 - name: Deploy HPA manifest
   kubernetes.core.k8s:
     state: present
     src: "{{ playbook_dir }}/kubernetes/hpa.yaml"
+    kubeconfig: /etc/kubernetes/admin.conf
+    validate_certs: false
