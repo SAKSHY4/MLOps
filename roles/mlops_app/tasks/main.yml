@@ -18,26 +18,13 @@
       - openshift
     state: present
 
-- name: Deploy Deployment manifest
-  kubernetes.core.k8s:
-    state: present
-    src: "{{ playbook_dir }}/kubernetes/deployment.yaml"
-    kubeconfig: /etc/kubernetes/admin.conf
-    validate_certs: false
-    become: true
-
-- name: Deploy Service manifest
-  kubernetes.core.k8s:
-    state: present
-    src: "{{ playbook_dir }}/kubernetes/service.yaml"
-    kubeconfig: /etc/kubernetes/admin.conf
-    validate_certs: false
-    become: true
-
-- name: Deploy HPA manifest
-  kubernetes.core.k8s:
-    state: present
-    src: "{{ playbook_dir }}/kubernetes/hpa.yaml"
-    kubeconfig: /etc/kubernetes/admin.conf
-    validate_certs: false
-    become: true
+- name: Deploy Kubernetes manifests via kubectl
+  ansible.builtin.command: kubectl apply -f {{ item }}
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  become: true
+  loop:
+    - "{{ playbook_dir }}/kubernetes/deployment.yaml"
+    - "{{ playbook_dir }}/kubernetes/service.yaml"
+    - "{{ playbook_dir }}/kubernetes/hpa.yaml"
+  changed_when: true
