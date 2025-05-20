@@ -1,5 +1,11 @@
 ---
 # tasks file for roles/k8s_setup
+- name: Relax permissions on admin.conf
+  ansible.builtin.file:
+    path: /etc/kubernetes/admin.conf
+    mode: '0644'
+  become: true
+
 - name: Add Kubernetes apt key
   ansible.builtin.apt_key:
     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
