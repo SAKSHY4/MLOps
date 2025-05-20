@@ -24,6 +24,7 @@
     src: "{{ playbook_dir }}/kubernetes/deployment.yaml"
     kubeconfig: /etc/kubernetes/admin.conf
     validate_certs: false
+    become: true
 
 - name: Deploy Service manifest
   kubernetes.core.k8s:
@@ -31,6 +32,7 @@
     src: "{{ playbook_dir }}/kubernetes/service.yaml"
     kubeconfig: /etc/kubernetes/admin.conf
     validate_certs: false
+    become: true
 
 - name: Deploy HPA manifest
   kubernetes.core.k8s:
@@ -38,3 +40,4 @@
     src: "{{ playbook_dir }}/kubernetes/hpa.yaml"
     kubeconfig: /etc/kubernetes/admin.conf
     validate_certs: false
+    become: true
