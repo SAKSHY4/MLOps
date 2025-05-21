@@ -1,5 +1,16 @@
 ---
-# roles/k8s_setup/tasks/main.yml
+# 0. Bail out immediately if a healthy cluster already exists
+- name: Check if Kubernetes cluster already exists
+  ansible.builtin.command:
+    cmd: kubectl get nodes
+    warn: false
+  register: k8s_exists
+  ignore_errors: true
+  changed_when: false
+
+- name: Skip Kubernetes setup when cluster is healthy
+  ansible.builtin.meta: end_play
+  when: k8s_exists.rc == 0
 
 # 1. Add Kubernetes apt key & repo, install kubelet/kubeadm/kubectl
 - name: Add Google Cloud apt key
@@ -45,9 +56,10 @@
   become: true
 
 - name: Test cluster health (ignore errors)
-  ansible.builtin.command: kubectl get nodes
-  environment:
-    KUBECONFIG: /etc/kubernetes/admin.conf
+  ansible.builtin.command:
+    cmd: kubectl get nodes
+    environment:
+      KUBECONFIG: /etc/kubernetes/admin.conf
   register: cluster_health
   ignore_errors: true
   changed_when: false
@@ -58,7 +70,8 @@
 - name: Reset and remove stale control-plane data
   block:
     - name: Reset any existing Kubernetes cluster
-      ansible.builtin.command: kubeadm reset -f
+      ansible.builtin.command:
+        cmd: kubeadm reset -f
       ignore_errors: true
       become: true
 
@@ -85,7 +98,8 @@
 
 # 4. Initialize control-plane if needed
 - name: Initialize Kubernetes control plane
-  ansible.builtin.command: kubeadm init --pod-network-cidr=10.244.0.0/16
+  ansible.builtin.command:
+    cmd: kubeadm init --pod-network-cidr=10.244.0.0/16
   when:
     - inventory_hostname in groups['masters']
     - not admin_conf.stat.exists or cluster_health.rc != 0
@@ -113,17 +127,19 @@
 
 # 6. Deploy network plugin & metrics server once
 - name: Deploy Calico CNI plugin
-  ansible.builtin.command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
-  environment:
-    KUBECONFIG: /etc/kubernetes/admin.conf
+  ansible.builtin.command:
+    cmd: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+    environment:
+      KUBECONFIG: /etc/kubernetes/admin.conf
   when: kubeadm_init.changed
   become: true
   changed_when: true
 
 - name: Install Kubernetes Metrics Server
-  ansible.builtin.command: kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-  environment:
-    KUBECONFIG: /etc/kubernetes/admin.conf
+  ansible.builtin.command:
+    cmd: kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+    environment:
+      KUBECONFIG: /etc/kubernetes/admin.conf
   when: kubeadm_init.changed
   become: true
   changed_when: true
