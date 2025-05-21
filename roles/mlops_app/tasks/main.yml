@@ -1,6 +1,7 @@
 ---
 # roles/mlops_app/tasks/main.yml
 
+# 1. Ensure the application directory exists
 - name: Ensure /opt/mlops/app directory exists
   ansible.builtin.file:
     path: /opt/mlops/app
@@ -10,6 +11,7 @@
     mode: '0755'
   become: true
 
+# 2. Copy your ML app code
 - name: Copy application code
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/app/"
@@ -17,10 +19,12 @@
     mode: '0755'
   become: true
 
+# 3. Install Python tooling
 - name: Ensure python3-pip is installed
   ansible.builtin.apt:
     name: python3-pip
     state: present
+    update_cache: yes
   become: true
 
 - name: Install Kubernetes Python client libraries
@@ -31,9 +35,10 @@
     state: present
   become: true
 
-- name: Deploy Kubernetes manifests
-  community.kubernetes.k8s:
-    kubeconfig: /etc/kubernetes/admin.conf
+# 4. Deploy Kubernetes manifests using the same KUBECONFIG
+- name: Deploy ML Ops app manifests to Kubernetes
+  kubernetes.core.k8s:
+    kubeconfig: "{{ lookup('env','KUBECONFIG') }}"
     state: present
     src: "{{ item }}"
   loop:
