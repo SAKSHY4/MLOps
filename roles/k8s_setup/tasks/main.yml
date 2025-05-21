@@ -1,7 +1,7 @@
 ---
 # roles/k8s_setup/tasks/main.yml
 
-# 1. Add the Kubernetes apt key & repo, then install kubelet, kubeadm, kubectl
+# 1. Add Kubernetes apt key & repo, install kubelet/kubeadm/kubectl
 - name: Add Google Cloud apt key
   ansible.builtin.apt_key:
     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
@@ -37,39 +37,68 @@
     state: present
   become: true
 
-# 2. Detect whether the control-plane has already been initialized
-- name: Check for existing admin.conf
+# 2. Detect existing cluster
+- name: Check if admin.conf exists
   ansible.builtin.stat:
     path: /etc/kubernetes/admin.conf
   register: admin_conf
   become: true
 
-- name: Check cluster health if admin.conf exists
+- name: Test cluster health (ignore errors)
   ansible.builtin.command: kubectl get nodes
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
-  register: cluster_status
+  register: cluster_health
   ignore_errors: true
   changed_when: false
   when: admin_conf.stat.exists
   become: true
 
-# 3. Initialize control-plane only if missing or unhealthy
+# 3. Cleanup stale cluster if unhealthy
+- name: Reset and remove stale control-plane data
+  block:
+    - name: Reset any existing Kubernetes cluster
+      ansible.builtin.command: kubeadm reset -f
+      ignore_errors: true
+      become: true
+
+    - name: Remove static pod manifests
+      ansible.builtin.file:
+        path: /etc/kubernetes/manifests
+        state: absent
+      become: true
+
+    - name: Remove etcd data directory
+      ansible.builtin.file:
+        path: /var/lib/etcd
+        state: absent
+      become: true
+
+    - name: Remove CNI configuration
+      ansible.builtin.file:
+        path: /etc/cni/net.d
+        state: absent
+      become: true
+  when:
+    - admin_conf.stat.exists
+    - cluster_health.rc != 0
+
+# 4. Initialize control-plane if needed
 - name: Initialize Kubernetes control plane
   ansible.builtin.command: kubeadm init --pod-network-cidr=10.244.0.0/16
   when:
-    - not admin_conf.stat.exists
     - inventory_hostname in groups['masters']
+    - not admin_conf.stat.exists or cluster_health.rc != 0
   register: kubeadm_init
   become: true
 
-# 4. Configure kubectl for the root user on the master
-- name: Ensure root .kube directory exists
+# 5. Configure kubectl for root on master
+- name: Ensure root kube directory exists
   ansible.builtin.file:
     path: /root/.kube
     state: directory
     mode: '0700'
-  when: kubeadm_init is changed
+  when: kubeadm_init.changed
   become: true
 
 - name: Copy admin.conf to root kubeconfig
@@ -79,15 +108,15 @@
     remote_src: yes
     owner: root
     mode: '0644'
-  when: kubeadm_init is changed
+  when: kubeadm_init.changed
   become: true
 
-# 5. Deploy Calico CNI and Metrics Server on first init
-- name: Deploy Calico network plugin
+# 6. Deploy network plugin & metrics server once
+- name: Deploy Calico CNI plugin
   ansible.builtin.command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
-  when: kubeadm_init is changed
+  when: kubeadm_init.changed
   become: true
   changed_when: true
 
@@ -95,17 +124,6 @@
   ansible.builtin.command: kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
-  when: kubeadm_init is changed
+  when: kubeadm_init.changed
   become: true
   changed_when: true
-
-- name: Wait for Metrics Server to be ready
-  ansible.builtin.command: >
-    kubectl wait --for=condition=available
-    deployment/metrics-server -n kube-system --timeout=120s
-  environment:
-    KUBECONFIG: /etc/kubernetes/admin.conf
-  when: kubeadm_init is changed
-  become: true
-  changed_when: false
-  ignore_errors: true
