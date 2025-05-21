@@ -1,15 +1,27 @@
 ---
-# tasks file for roles/mlops_app
+# roles/mlops_app/tasks/main.yml
+
+- name: Ensure /opt/mlops/app directory exists
+  ansible.builtin.file:
+    path: /opt/mlops/app
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+
 - name: Copy application code
-  copy:
+  ansible.builtin.copy:
     src: "{{ playbook_dir }}/app/"
     dest: /opt/mlops/app/
     mode: '0755'
+  become: true
 
 - name: Ensure python3-pip is installed
   ansible.builtin.apt:
     name: python3-pip
     state: present
+  become: true
 
 - name: Install Kubernetes Python client libraries
   ansible.builtin.pip:
@@ -17,14 +29,15 @@
       - kubernetes
       - openshift
     state: present
-
-- name: Deploy Kubernetes manifests via kubectl
-  ansible.builtin.command: kubectl apply -f {{ item }}
-  environment:
-    KUBECONFIG: /etc/kubernetes/admin.conf
   become: true
+
+- name: Deploy Kubernetes manifests
+  community.kubernetes.k8s:
+    kubeconfig: /etc/kubernetes/admin.conf
+    state: present
+    src: "{{ item }}"
   loop:
     - "{{ playbook_dir }}/kubernetes/deployment.yaml"
     - "{{ playbook_dir }}/kubernetes/service.yaml"
     - "{{ playbook_dir }}/kubernetes/hpa.yaml"
-  changed_when: true
+  become: false
