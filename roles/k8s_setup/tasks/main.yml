@@ -80,6 +80,7 @@
         path: /etc/kubernetes/manifests
         state: absent
       become: true
+      when: admin_conf.stat.exists and (cluster_health.rc | default(1) != 0)
 
     - name: Remove etcd data directory
       ansible.builtin.file:
