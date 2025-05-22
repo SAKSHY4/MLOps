@@ -1,12 +1,22 @@
 ---
 # tasks file for roles/docker
-- name: Install Docker CE
-  apt:
-    name: docker.io
-    state: present
 
-- name: Ensure docker service is running
+- name: Update apt package cache
+  apt:
+    update_cache: true
+  become: true
+  throttle: 1
+
+- name: Start Docker service
   service:
     name: docker
     state: started
     enabled: yes
+  become: true
+
+- name: Add user to docker group
+  user:
+    name: "{{ ansible_user | default(ansible_env.USER) }}"
+    groups: docker
+    append: yes
+  become: true
