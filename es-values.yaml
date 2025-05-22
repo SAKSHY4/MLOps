@@ -1,0 +1,10 @@
+replicas: 1
+clusterHealthCheckParams: "wait_for_status=yellow&timeout=10s"
+protocol: https
+tls:
+  selfSignedCertificate:
+    enabled: true
+volumeClaimTemplate:
+  resources:
+    requests:
+      storage: 2Gi

@@ -1,0 +1,44 @@
+# metricbeat-values.yaml
+daemonset:
+  extraEnvs:
+    - name: ELASTIC_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: elasticsearch-master-credentials
+          key: password
+  # Mount the ES CA so output works over TLS
+  extraVolumes:
+    - name: es-ca
+      secret:
+        secretName: elasticsearch-master-certs
+  extraVolumeMounts:
+    - name: es-ca
+      mountPath: /etc/metricbeat/certs
+      readOnly: true
+
+metricbeatConfig:
+  metricbeat.yml: |
+    metricbeat.autodiscover:
+      providers:
+        - type: kubernetes
+          hints.enabled: true
+
+    metricbeat.modules:
+      # System module – no hosts field here
+      - module: system
+        metricsets: ["cpu","memory","network","load"]
+        period: 10s
+
+      # Docker module – requires the docker socket
+      - module: docker
+        metricsets: ["container","cpu","memory","network"]
+        period: 10s
+        hosts: ["unix:///var/run/docker.sock"]
+
+    output.elasticsearch:
+      hosts: ["https://elasticsearch-master.kube-logging.svc:9200"]
+      username: "elastic"
+      password: "${ELASTIC_PASSWORD}"
+      ssl:
+        certificate_authorities: ["/etc/metricbeat/certs/ca.crt"]
+        verification_mode: certificate

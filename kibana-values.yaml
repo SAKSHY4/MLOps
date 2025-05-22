@@ -1,0 +1,47 @@
+# kibana-values.yaml - FIXED VERSION
+
+# Basic Kibana configuration
+protocol: https
+https:
+  enabled: true
+  selfSignedCertificate:
+    enabled: true
+
+# Elasticsearch connection settings
+elasticsearch:
+  hosts: ["https://elasticsearch-master.kube-logging.svc:9200"]
+  username: elastic
+  password:
+    secretKeyRef:
+      name: elasticsearch-master-credentials
+      key: password
+  ssl:
+    certificateAuthorities:
+      - /usr/share/kibana/config/certs/ca.crt
+    verificationMode: certificate
+
+# Fix the readiness probe by nullifying the default handler
+readinessProbe:
+  tcpSocket: null    # Set default handler to null
+  exec: null         # Also nullify exec if present
+  httpGet:           # Now define your new probe type
+    path: /status
+    port: 5601
+    scheme: HTTPS
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+# Also fix liveness probe if it exists
+livenessProbe:
+  tcpSocket: null    # Set default handler to null
+  exec: null         # Also nullify exec if present
+  httpGet:           # Now define your new probe type
+    path: /status
+    port: 5601
+    scheme: HTTPS
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3

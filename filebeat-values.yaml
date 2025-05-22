@@ -1,0 +1,34 @@
+# filebeat-values.yaml
+
+# 1. Inject the Elasticsearch password as an env var
+daemonset:
+  extraEnvs:
+    - name: ELASTIC_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: elasticsearch-master-credentials
+          key: password
+
+  # 2. Mount the ES CA so Filebeat can verify TLS
+  extraVolumes:
+    - name: es-ca
+      secret:
+        secretName: elasticsearch-master-certs
+
+  extraVolumeMounts:
+    - name: es-ca
+      mountPath: /etc/filebeat/certs
+      readOnly: true
+
+# 3. Override the Filebeat config to use the env var and CA mount
+filebeatConfig:
+  filebeat.yml: |
+    filebeat.autodiscover:
+      providers:
+        - type: kubernetes
+          hints.enabled: true
+
+    output.logstash:
+      hosts: ["logstash-logstash.kube-logging.svc:5044"]
+      loadbalance: true
+      ssl.enabled: false

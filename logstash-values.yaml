@@ -1,0 +1,21 @@
+# logstash-values.yaml
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  ports:
+    - name: beats
+      port: 5044
+      protocol: TCP
+      targetPort: 5044
+    - name: http
+      port: 9600
+      protocol: TCP
+      targetPort: 9600
+
+config:
+  logstash.yml: |
+    http.host: "0.0.0.0"
+  pipelines.yml: |
+    - pipeline.id: beats
+      path.config: /usr/share/logstash/pipeline/logstash.conf
