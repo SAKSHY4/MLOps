@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: mlops-demo
-          image: yourdockerhub/mlops-demo:latest   # will be replaced by sed in Jenkins
+          image: sakshya4/mlops-demo:latest
           ports:
             - containerPort: 5000
           resources:
