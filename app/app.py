@@ -1,17 +1,14 @@
-# app/app.py - Fixed model path for container
+# app/app.py - Final corrected version
 from flask import Flask, request, jsonify, render_template
 import pickle
 import numpy as np
 import os
 
-basedir = os.path.dirname(os.path.abspath(__file__))
-
-# Create Flask app with correct template/static paths
 app = Flask(__name__, 
-           template_folder=os.path.join(basedir, 'templates'),
-           static_folder=os.path.join(basedir, 'static'))
+           template_folder='templates',
+           static_folder='static')
 
-model_path = os.path.join(basedir, 'model.pkl')
+model_path = 'model.pkl'
 print(f"Looking for model at: {model_path}")
 
 try:

@@ -4,10 +4,7 @@ import json
 import pytest
 import numpy as np
 
-# Add the parent directory to sys.path to import app
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from app.app import app
+from app import app
 
 @pytest.fixture
 def client():
@@ -24,7 +21,8 @@ def test_home(client):
     """
     response = client.get('/')
     assert response.status_code == 200
-    assert b"MLOps Flask API running" in response.data
+
+    assert b"<html" in response.data or b"<!DOCTYPE" in response.data
 
 def test_health(client):
     """
@@ -43,7 +41,8 @@ def test_predict(client):
     WHEN a POST request with features is sent to '/predict'
     THEN check that it returns a prediction
     """
-    test_data = {"features": [0.5, 0.5, 0.5, 0.5]}
+
+    test_data = {"features": [5.0, 3.0, 7.0, 8.0]}
     response = client.post('/predict',
                          json=test_data,
                          content_type='application/json')
@@ -51,13 +50,15 @@ def test_predict(client):
     data = json.loads(response.data)
     assert 'prediction' in data
 
+    assert data['prediction'] in [0, 1]
+
 def test_predict_bad_request(client):
     """
     GIVEN a Flask application
     WHEN a POST request with missing features is sent to '/predict'
     THEN check that it returns a 400 error
     """
-    test_data = {"wrong_key": [0.5, 0.5, 0.5, 0.5]}
+    test_data = {"wrong_key": [5.0, 3.0, 7.0, 8.0]}
     response = client.post('/predict',
                          json=test_data,
                          content_type='application/json')

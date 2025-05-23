@@ -14,6 +14,7 @@ COPY model.pkl .
 COPY app/ .
 COPY templates/ ./templates/
 COPY static/ ./static/
+COPY tests/ ./tests/
 
 EXPOSE 5000
 CMD ["python", "app.py"]
