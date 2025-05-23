@@ -81,7 +81,6 @@ pipeline {
         sh '''
           echo "Using kubeconfig: ${KUBECONFIG}"
           echo "Kubernetes server from Vault: ${VAULT_KUBERNETES_SERVER}"
-          echo "Original server: ${KUBERNETES_SERVER}"
           kubectl config current-context
         '''
       }
@@ -90,7 +89,7 @@ pipeline {
     stage('Check K8s Connectivity') {
       steps {
         echo "Using kubeconfig at: ${env.KUBECONFIG}"
-        echo "Connecting to Kubernetes server: ${env.KUBERNETES_SERVER}"
+        echo "Connecting to Kubernetes server: ${env.VAULT_KUBERNETES_SERVER}"
         sh 'kubectl get nodes' 
         sh 'kubectl cluster-info'
       }

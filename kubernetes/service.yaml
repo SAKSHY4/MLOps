@@ -4,9 +4,10 @@ metadata:
   name: mlops-demo
   namespace: default
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: mlops-demo
   ports:
     - port: 80
       targetPort: 5000
+      nodePort: 30080
