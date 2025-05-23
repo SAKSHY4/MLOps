@@ -59,15 +59,7 @@ pipeline {
       steps {
         script {
           echo "Verifying Vault secrets integration..."
-          
-          def secretsList = sh(
-            script: "/usr/bin/vault kv list secret/",
-            returnStdout: true
-          ).trim()
-          
-          echo "Available secrets in Vault:"
-          echo secretsList
-          
+
           // Test connectivity using Vault-retrieved credentials
           sh """
             echo "Testing Docker Hub connectivity..."
