@@ -23,7 +23,7 @@ export VAULT_ADDR='http://127.0.0.1:8200'
 echo -e "\n5. Vault:"
 vault status | head -3
 
-echo "\n5.5. Ensuring metrics-server is available..."
+echo -e "\n5.5. Ensuring metrics-server is available..."
 minikube addons enable metrics-server
 kubectl wait --for=condition=ready pod -l k8s-app=metrics-server -n kube-system --timeout=120s
 
