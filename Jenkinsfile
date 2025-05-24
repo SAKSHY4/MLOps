@@ -86,24 +86,17 @@ pipeline {
     }
 
     stage('Check K8s Connectivity') {
-  steps {
-    script {
-      def k8sServer = sh(
-        script: "kubectl cluster-info | grep 'control plane' | sed 's/.*running at //' | sed 's/\\x1b\\[[0-9;]*m//g'",
-        returnStdout: true
-      ).trim()
-      
-      echo "Detected Kubernetes server: ${k8sServer}"
-      
-      sh """
-        kubectl config set-cluster minikube --server='${k8sServer}'
-        kubectl config use-context minikube
-        kubectl get nodes
-        kubectl cluster-info
-      """
+      steps {
+        echo "Bypassing dynamic detection for demo reliability"
+        sh '''
+          # Direct kubectl commands with correct server
+          kubectl config set-cluster minikube --server='https://127.0.0.1:50729'
+          kubectl config use-context minikube
+          kubectl get nodes
+          kubectl cluster-info
+        '''
+      }
     }
-  }
-}
 
     stage('Provision Infrastructure') {
       agent any
