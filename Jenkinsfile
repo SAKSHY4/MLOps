@@ -81,6 +81,8 @@ pipeline {
         sh '''
           echo "Using kubeconfig: ${KUBECONFIG}"
           echo "Kubernetes server from Vault: ${VAULT_KUBERNETES_SERVER}"
+          kubectl config set-cluster minikube --server="${VAULT_KUBERNETES_SERVER}"
+          echo "Original server: ${KUBERNETES_SERVER}"
           kubectl config current-context
         '''
       }
