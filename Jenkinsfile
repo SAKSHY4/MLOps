@@ -65,9 +65,6 @@ pipeline {
             echo "Testing Docker Hub connectivity..."
             echo '${DOCKER_HUB_PASSWORD}' | docker login -u '${DOCKER_HUB_USER}' --password-stdin
             docker logout
-            
-            echo "Testing Kubernetes connectivity..."
-            curl -k ${VAULT_KUBERNETES_SERVER}/healthz || echo "Kubernetes health check"
           """
           
           echo "Vault integrations verified!"
@@ -89,13 +86,24 @@ pipeline {
     }
 
     stage('Check K8s Connectivity') {
-      steps {
-        echo "Using kubeconfig at: ${env.KUBECONFIG}"
-        echo "Connecting to Kubernetes server: ${env.VAULT_KUBERNETES_SERVER}"
-        sh 'kubectl get nodes' 
-        sh 'kubectl cluster-info'
-      }
+  steps {
+    script {
+      def k8sServer = sh(
+        script: "kubectl cluster-info | grep 'control plane' | sed 's/.*running at //' | sed 's/\\x1b\\[[0-9;]*m//g'",
+        returnStdout: true
+      ).trim()
+      
+      echo "Detected Kubernetes server: ${k8sServer}"
+      
+      sh """
+        kubectl config set-cluster minikube --server='${k8sServer}'
+        kubectl config use-context minikube
+        kubectl get nodes
+        kubectl cluster-info
+      """
     }
+  }
+}
 
     stage('Provision Infrastructure') {
       agent any
