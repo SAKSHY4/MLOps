@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    VAULT_ADDR = 'https://127.0.0.1:62268' 
+    VAULT_ADDR = 'http://127.0.0.1:62268' 
     KUBECONFIG = '/var/lib/jenkins/.kube/config'
     DOCKER_HUB_CREDS = credentials('DockerHubCred')
     APP_NAME         = 'mlops-demo'
