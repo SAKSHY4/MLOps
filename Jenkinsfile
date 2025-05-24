@@ -90,7 +90,7 @@ pipeline {
         echo "Bypassing dynamic detection for demo reliability"
         sh '''
           # Direct kubectl commands with correct server
-          kubectl config set-cluster minikube --server='https://127.0.0.1:50729'
+          kubectl config set-cluster minikube --server='https://127.0.0.1:32786'
           kubectl config use-context minikube
           kubectl get nodes
           kubectl cluster-info
